@@ -1,0 +1,20 @@
+<!-- src/resources/resources.qrc -->
+<RCC>
+    <qresource prefix="/">
+        <file>icons/solid/pause.svg</file>
+        <file>icons/solid/play.svg</file>
+        <file>icons/solid/arrow-path.svg</file>
+        <file>icons/solid/x-mark.svg</file>
+        <file>icons/solid/folder-open.svg</file>
+        <file>icons/solid/trash.svg</file>
+        <file>icons/solid/chevron-down.svg</file>
+        <file>icons/solid/chevron-up.svg</file>
+        <file>icons/solid/plus.svg</file>
+        <file>icons/solid/cog-6-tooth.svg</file>
+        <file>icons/solid/clipboard-document.svg</file>
+        <file>icons/solid/squares-2x2.svg</file>
+        <file>icons/solid/arrow-down-tray.svg</file>
+        <file>icons/solid/check-circle.svg</file>
+        <file>icons/solid/x-circle.svg</file>
+    </qresource>
+</RCC>
