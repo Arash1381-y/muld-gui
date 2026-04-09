@@ -16,7 +16,7 @@ namespace muld_gui {
 DownloadManager::DownloadManager(QObject* parent)
     : QObject(parent)
 {
-    muld::MuldConfig config;
+    muld::MuldConfig config = {.max_threads = 16};
     m_manager = std::make_unique<muld::MuldDownloadManager>(config);
     loadState();
 }
@@ -28,7 +28,7 @@ DownloadManager::~DownloadManager() {
 }
 
 DownloadItem* DownloadManager::addDownload(const QString& url, const QString& savePath,
-                                           const QString& filename, int connections) {
+                                           const QString& filename, std::size_t speedLimitBytesPerSec) {
     m_lastError.clear();
     if (!m_manager) {
         m_lastError = QStringLiteral("Download manager not initialized");
@@ -69,7 +69,7 @@ DownloadItem* DownloadManager::addDownload(const QString& url, const QString& sa
     muld::MuldRequest req{
         .url = urlUtf8.constData(),
         .destination = destinationUtf8.constData(),
-        .max_connections = connections > 0 ? connections : 1,
+        .speed_limit_bps = speedLimitBytesPerSec,
     };
 
     auto resp = m_manager->Download(req);

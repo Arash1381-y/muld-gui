@@ -12,9 +12,9 @@ DownloadController::DownloadController(QObject* parent)
 DownloadController::~DownloadController() = default;
 
 DownloadItem* DownloadController::addDownload(const QString& url, const QString& outputDir,
-                                              const QString& filename, int connections)
+                                              const QString& filename, std::size_t speedLimitBytesPerSec)
 {
-    return m_manager->addDownload(url, outputDir, filename, connections);
+    return m_manager->addDownload(url, outputDir, filename, speedLimitBytesPerSec);
 }
 
 void DownloadController::removeDownload(int index) {

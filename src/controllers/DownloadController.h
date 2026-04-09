@@ -3,6 +3,7 @@
 #include "../core/DownloadManager.h"
 #include "../models/DownloadListModel.h"
 #include <QObject>
+#include <cstddef>
 
 namespace muld_gui {
 
@@ -18,7 +19,7 @@ public:
 
 public slots:
     DownloadItem* addDownload(const QString& url, const QString& outputDir,
-                              const QString& filename = {}, int connections = 4);
+                              const QString& filename = {}, std::size_t speedLimitBytesPerSec = 0);
     void removeDownload(int index);
     void pauseDownload(int index);
     void resumeDownload(int index);

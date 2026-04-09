@@ -3,11 +3,11 @@
 #include <QDialogButtonBox>
 #include <QDir>
 #include <QFileDialog>
-#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QStandardPaths>
 #include <QUrl>
 #include <QFileInfo>
@@ -20,7 +20,7 @@ AddDownloadDialog::AddDownloadDialog(const QStringList& existingTargets, QWidget
       m_urlEdit(nullptr),
       m_outputEdit(nullptr),
       m_filenameEdit(nullptr),
-      m_connCombo(nullptr),
+      m_speedLimitSpin(nullptr),
       m_okBtn(nullptr),
       m_errorLabel(nullptr),
       m_filenameTouchedByUser(false),
@@ -35,7 +35,8 @@ void AddDownloadDialog::setupUi() {
     setStyleSheet(
         "QDialog { background:#252526; color:#cccccc; }"
         "QLabel { color:#858585; font:11px 'Segoe UI'; letter-spacing:0.4px; }"
-        "QLineEdit, QComboBox { background:#1e1e1e; color:#cccccc; border:1px solid #454545; padding:6px; }"
+        "QLineEdit, QSpinBox { background:#1e1e1e; color:#cccccc; border:1px solid #454545; padding:6px; }"
+        "QSpinBox::up-button, QSpinBox::down-button { width:16px; border:none; }"
         "QPushButton { background:#3c3c3c; color:#cccccc; border:1px solid #3e3e42; padding:6px 14px; }"
         "QPushButton:hover { background:#505050; }");
 
@@ -81,12 +82,14 @@ void AddDownloadDialog::setupUi() {
     browseRow->addWidget(browseButton);
     root->addLayout(browseRow);
 
-    root->addWidget(new QLabel(tr("Connections"), this));
-    m_connCombo = new QComboBox(this);
-    m_connCombo->addItems({QStringLiteral("1"), QStringLiteral("2"), QStringLiteral("4"),
-                           QStringLiteral("8"), QStringLiteral("16"), QStringLiteral("32")});
-    m_connCombo->setCurrentText(QStringLiteral("4"));
-    root->addWidget(m_connCombo);
+    root->addWidget(new QLabel(tr("Speed Limit (KB/s)"), this));
+    m_speedLimitSpin = new QSpinBox(this);
+    m_speedLimitSpin->setRange(0, 1000000);
+    m_speedLimitSpin->setValue(0);
+    m_speedLimitSpin->setSpecialValueText(tr("Unlimited"));
+    m_speedLimitSpin->setSingleStep(256);
+    m_speedLimitSpin->setAccelerated(true);
+    root->addWidget(m_speedLimitSpin);
 
     m_errorLabel = new QLabel(this);
     m_errorLabel->setStyleSheet("color:#e57373; font:11px 'Segoe UI';");
@@ -127,8 +130,11 @@ QString AddDownloadDialog::filename() const {
     return m_filenameEdit ? m_filenameEdit->text().trimmed() : QString();
 }
 
-int AddDownloadDialog::connections() const {
-    return m_connCombo ? m_connCombo->currentText().toInt() : 4;
+std::size_t AddDownloadDialog::speedLimitBytesPerSec() const {
+    if (!m_speedLimitSpin) {
+        return 0;
+    }
+    return static_cast<std::size_t>(m_speedLimitSpin->value()) * 1024ull;
 }
 
 void AddDownloadDialog::browseOutputDir() {

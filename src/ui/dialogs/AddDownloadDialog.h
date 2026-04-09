@@ -2,10 +2,10 @@
 
 #include <QDialog>
 #include <QStringList>
+#include <cstddef>
 
 class QLineEdit;
-
-class QComboBox;
+class QSpinBox;
 
 class QPushButton;
 class QLabel;
@@ -26,7 +26,7 @@ QString outputDir() const;
 
 QString filename() const;
 
-int connections() const;
+std::size_t speedLimitBytesPerSec() const;
 
 private slots:
 
@@ -47,8 +47,7 @@ QLineEdit* m_urlEdit;
 QLineEdit* m_outputEdit;
 
 QLineEdit* m_filenameEdit;
-
-QComboBox* m_connCombo;
+QSpinBox* m_speedLimitSpin;
 
 QPushButton* m_okBtn;
 QLabel* m_errorLabel;

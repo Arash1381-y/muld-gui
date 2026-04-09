@@ -146,19 +146,14 @@ void DownloadItem::start() {
 
 void DownloadItem::pause() {
     if (m_handler.has_value() && m_info.state == DownloadState::Downloading) {
-        const auto resp = m_handler->Pause();
-        if (!resp) {
-            m_errorMessage = QString::fromStdString(resp.error.GetFormattedMessage());
-        }
+        m_handler->Pause();
     }
 }
 
 void DownloadItem::resume() {
     if (m_handler.has_value() && m_info.state == DownloadState::Paused) {
-        const auto resp = m_handler->Resume();
-        if (!resp) {
-            m_errorMessage = QString::fromStdString(resp.error.GetFormattedMessage());
-        }
+        m_handler->Resume();
+        
     }
 }
 
@@ -166,10 +161,7 @@ void DownloadItem::cancel() {
     if (m_handler.has_value() && (m_info.state == DownloadState::Downloading ||
                                   m_info.state == DownloadState::Paused ||
                                   m_info.state == DownloadState::Queued)) {
-        const auto resp = m_handler->Cancel();
-        if (!resp) {
-            m_errorMessage = QString::fromStdString(resp.error.GetFormattedMessage());
-        }
+        m_handler->Cancel();
     }
 }
 

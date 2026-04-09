@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QString>
 #include <memory>
+#include <cstddef>
 #include <muld/muld.h>
 
 #include "DownloadItem.h"
@@ -18,7 +19,7 @@ public:
     ~DownloadManager();
 
     DownloadItem* addDownload(const QString& url, const QString& savePath,
-                              const QString& filename = {}, int connections = 4);
+                              const QString& filename = {}, std::size_t speedLimitBytesPerSec = 0);
     int count() const { return m_downloads.size(); }
     DownloadItem* downloadAt(int index) const {
         return (index >= 0 && index < m_downloads.size()) ? m_downloads.at(index) : nullptr;

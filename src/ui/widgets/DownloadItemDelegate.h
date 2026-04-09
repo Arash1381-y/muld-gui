@@ -25,6 +25,7 @@ class DownloadItemDelegate : public QStyledItemDelegate {
   void setExpandedIndex(const QModelIndex& index);
   void clearExpandedIndex();
   QModelIndex expandedIndex() const;
+  void clearActionFeedback();
 
   void paint(QPainter* painter, const QStyleOptionViewItem& option,
 
@@ -40,6 +41,8 @@ class DownloadItemDelegate : public QStyledItemDelegate {
  signals:
   void actionClicked(const QModelIndex& index, int action);
   void expandToggled(const QModelIndex& index);
+  void selectionToggled(const QModelIndex& index);
+  void repaintRequested();
 
  private:
   QRect caretRect(const QRect& rowRect) const;
@@ -51,12 +54,24 @@ class DownloadItemDelegate : public QStyledItemDelegate {
   QColor actionColor(int actionType) const;
   QPixmap tintedIcon(const QString& path, const QColor& color, int size) const;
   QString actionIconPath(int actionType) const;
+  QString actionText(int actionType) const;
+  QColor actionBgColor(int actionType, bool hovered, bool pressed) const;
+  QRect selectionRect(const QRect& rowRect) const;
   void drawStatusBadge(QPainter* painter, const QRect& rect, int state) const;
   void drawProgressBar(QPainter* painter, const QRect& rect,
 
                        int percent, int state) const;
+  void flashAction(const QModelIndex& index, int actionType);
+  bool isActionFlashed(const QModelIndex& index, int actionType) const;
 
   QPersistentModelIndex m_expandedIndex;
+  QPersistentModelIndex m_hoveredIndex;
+  QPersistentModelIndex m_pressedIndex;
+  QPersistentModelIndex m_flashedIndex;
+  int m_hoveredAction = 0;
+  int m_pressedAction = 0;
+  int m_flashedAction = 0;
+  qint64 m_flashUntilMs = 0;
 };
 
 }  // namespace muld_gui
