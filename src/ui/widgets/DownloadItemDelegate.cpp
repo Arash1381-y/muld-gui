@@ -68,11 +68,18 @@ QRect DownloadItemDelegate::caretRect(const QRect& rowRect) const {
 }
 
 QRect DownloadItemDelegate::statusRect(const QRect& rowRect) const {
-  return QRect(rowRect.right() - 188, rowRect.top(), kStatusWidth, kRowHeight);
+  const int trailingWidth = kProgressWidth + kSpeedWidth + kEtaWidth + kSizeWidth +
+                            kStatusWidth + kActionsWidth + (kColumnGap * 5);
+  const int nameWidth = std::max(120, rowRect.width() - kLeadingWidth - trailingWidth);
+  const int x = rowRect.left() + kLeadingWidth + nameWidth +
+                kProgressWidth + kSpeedWidth + kEtaWidth + kSizeWidth +
+                (kColumnGap * 5);
+  return QRect(x, rowRect.top(), kStatusWidth, kRowHeight);
 }
 
 QRect DownloadItemDelegate::actionsRect(const QRect& rowRect) const {
-  return QRect(rowRect.right() - kActionsWidth, rowRect.top() + 14, 76, 28);
+  const int x = statusRect(rowRect).right() + 1 + kColumnGap;
+  return QRect(x, rowRect.top() + 14, 76, 28);
 }
 
 QRect DownloadItemDelegate::detailsRect(const QRect& itemRect) const {
@@ -237,9 +244,9 @@ void DownloadItemDelegate::paint(QPainter* painter,
   const QRect rowRect = option.rect.adjusted(10, 0, -10, 0);
   const bool expanded = m_expandedIndex.isValid() && m_expandedIndex == index;
 
-  const int fixedWidth = kLeadingWidth + kProgressWidth + kSpeedWidth + kEtaWidth +
-                         kSizeWidth + kStatusWidth + kActionsWidth + (kColumnGap * 5);
-  const int nameWidth = std::max(120, rowRect.width() - fixedWidth);
+  const int trailingWidth = kProgressWidth + kSpeedWidth + kEtaWidth + kSizeWidth +
+                            kStatusWidth + kActionsWidth + (kColumnGap * 5);
+  const int nameWidth = std::max(120, rowRect.width() - kLeadingWidth - trailingWidth);
   const QRect nameRect(rowRect.left() + kLeadingWidth, rowRect.top(), nameWidth, kRowHeight);
   const QRect progressRect(nameRect.right() + kColumnGap, rowRect.top(), kProgressWidth, kRowHeight);
   const QRect speedRect(progressRect.right() + kColumnGap, rowRect.top(), kSpeedWidth, kRowHeight);

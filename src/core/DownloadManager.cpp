@@ -140,7 +140,11 @@ void DownloadManager::trackItem(DownloadItem* item) {
 }
 
 QString DownloadManager::stateFilePath() const {
-    return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("muld-gui.dat"));
+    const QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (dataDir.isEmpty()) {
+        return QDir::home().filePath(QStringLiteral(".muld-gui.dat"));
+    }
+    return QDir(dataDir).filePath(QStringLiteral("downloads_state.json"));
 }
 
 void DownloadManager::saveState() const {
@@ -162,7 +166,14 @@ void DownloadManager::saveState() const {
         entries.append(obj);
     }
 
-    QFile out(stateFilePath());
+    const QString statePath = stateFilePath();
+    const QFileInfo info(statePath);
+    QDir parentDir = info.dir();
+    if (!parentDir.exists() && !parentDir.mkpath(QStringLiteral("."))) {
+        return;
+    }
+
+    QFile out(statePath);
     if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         return;
     }
@@ -170,7 +181,17 @@ void DownloadManager::saveState() const {
 }
 
 void DownloadManager::loadState() {
-    QFile in(stateFilePath());
+    const QString currentPath = stateFilePath();
+    QString pathToRead = currentPath;
+
+    // Backward compatibility: old builds stored state next to the executable.
+    const QString legacyPath = QDir(QCoreApplication::applicationDirPath())
+                                   .filePath(QStringLiteral("muld-gui.dat"));
+    if (!QFile::exists(pathToRead) && QFile::exists(legacyPath)) {
+        pathToRead = legacyPath;
+    }
+
+    QFile in(pathToRead);
     if (!in.exists() || !in.open(QIODevice::ReadOnly)) {
         return;
     }

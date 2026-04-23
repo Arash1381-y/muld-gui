@@ -56,7 +56,6 @@ void updateCountsAndStatus();
 
 void onSelectionChanged();
 void onSearchTextChanged(const QString& text);
-void onTypeFilterChanged(int row);
 void onSelectionCancel();
 void onSelectionSelectAll();
 void onBulkPause();
@@ -91,7 +90,6 @@ DownloadController* m_controller;
 QWidget* m_centralWidget;
 QWidget* m_headerWidget;
 QListWidget* m_sidebar;
-QListWidget* m_fileTypeList;
 QListView* m_listView;
 DownloadFilterProxyModel* m_proxyModel;
 DownloadItemDelegate* m_delegate;

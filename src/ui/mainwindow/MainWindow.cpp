@@ -232,8 +232,8 @@ class SidebarItemDelegate : public QStyledItemDelegate {
 
         const QRect r = option.rect;
         if (option.state & QStyle::State_Selected) {
-            painter->fillRect(r, QColor("#313236"));
-            painter->fillRect(QRect(r.left(), r.top(), 3, r.height()), QColor("#4fc3f7"));
+            painter->fillRect(r, QColor("#303033"));
+            painter->fillRect(QRect(r.left(), r.top(), 3, r.height()), QColor("#5a5a5a"));
         } else if (option.state & QStyle::State_MouseOver) {
             painter->fillRect(r, QColor("#2d2d30"));
         } else {
@@ -270,26 +270,21 @@ class SidebarItemDelegate : public QStyledItemDelegate {
         painter->drawText(r.adjusted(28, 0, -38, 0), Qt::AlignVCenter | Qt::AlignLeft, label);
 
         const int count = index.data(kFilterCountRole).toInt();
-        if (count <= 0) {
-            painter->restore();
-            return;
-        }
-
         const QString badge = QString::number(count);
-        const QRect badgeRect(r.right() - 34, r.top() + 8, 24, 1);
+        const QRect badgeRect(r.right() - 31, r.center().y() - 10, 20, 20);
         painter->setPen(Qt::NoPen);
-        QColor badgeBg("#3c3c3c");
+        QColor badgeBg("#3a3a3d");
         if (label == QStringLiteral("Completed")) {
-            badgeBg = QColor("#1d3f28");
+            badgeBg = QColor("#2f3a33");
         } else if (label == QStringLiteral("Failed")) {
-            badgeBg = QColor("#4a1f26");
+            badgeBg = QColor("#423034");
         } else if (label == QStringLiteral("Downloading")) {
-            badgeBg = QColor("#18415a");
+            badgeBg = QColor("#2e3942");
         } else if (label == QStringLiteral("Paused")) {
-            badgeBg = QColor("#4a3a12");
+            badgeBg = QColor("#433a2d");
         }
         painter->setBrush(badgeBg);
-        painter->drawRoundedRect(badgeRect, 8, 8);
+        painter->drawEllipse(badgeRect);
         painter->setPen(QColor("#cccccc"));
         painter->setFont(QFont(QStringLiteral("Segoe UI"), 8, QFont::Medium));
         painter->drawText(badgeRect, Qt::AlignCenter, badge);
@@ -342,7 +337,6 @@ MainWindow::MainWindow(DownloadController* controller, QWidget* parent)
     , m_centralWidget(nullptr)
     , m_headerWidget(nullptr)
     , m_sidebar(nullptr)
-    , m_fileTypeList(nullptr)
     , m_listView(nullptr)
     , m_proxyModel(nullptr)
     , m_delegate(nullptr)
@@ -419,6 +413,9 @@ void MainWindow::setupUi() {
     m_sidebar->setSpacing(2);
     m_sidebar->setSelectionMode(QAbstractItemView::SingleSelection);
     m_sidebar->setItemDelegate(new SidebarItemDelegate(m_sidebar));
+    m_sidebar->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_sidebar->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_sidebar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     const QStringList filters = {
         tr("All Downloads"), tr("Downloading"), tr("Completed"), tr("Paused"), tr("Failed")
     };
@@ -427,25 +424,8 @@ void MainWindow::setupUi() {
         item->setData(kFilterCountRole, 0);
     }
     m_sidebar->setCurrentRow(0);
-    sidebarLayout->addWidget(m_sidebar);
+    sidebarLayout->addWidget(m_sidebar, 1);
 
-    auto* typeLabel = new QLabel(tr("FILE TYPES"), sidebarContainer);
-    typeLabel->setStyleSheet("color:#8d8d8d; font:600 10px 'Segoe UI'; padding:2px 10px 0 10px;");
-    sidebarLayout->addWidget(typeLabel);
-
-    m_fileTypeList = new QListWidget(sidebarContainer);
-    m_fileTypeList->setSpacing(2);
-    m_fileTypeList->setSelectionMode(QAbstractItemView::SingleSelection);
-    m_fileTypeList->setItemDelegate(new SidebarItemDelegate(m_fileTypeList));
-    const QStringList fileTypes = {tr("All Types"), tr("Videos"), tr("Documents"), tr("Archives"), tr("Audio"), tr("Images")};
-    for (const QString& text : fileTypes) {
-        auto* item = new QListWidgetItem(text, m_fileTypeList);
-        item->setData(kFilterCountRole, 0);
-    }
-    m_fileTypeList->setCurrentRow(0);
-    sidebarLayout->addWidget(m_fileTypeList);
-
-    sidebarLayout->addStretch(1);
     m_storageLabel = new QLabel(sidebarContainer);
     m_storageLabel->setStyleSheet("background:#1f1f20; color:#c8c8c8; border:1px solid #303034; border-radius:6px; padding:8px;");
     m_storageLabel->setWordWrap(true);
@@ -526,7 +506,6 @@ void MainWindow::setupUi() {
     setCentralWidget(m_centralWidget);
 
     connect(m_sidebar, &QListWidget::currentRowChanged, this, &MainWindow::onFilterChanged);
-    connect(m_fileTypeList, &QListWidget::currentRowChanged, this, &MainWindow::onTypeFilterChanged);
     connect(m_listView, &QListView::clicked, this, &MainWindow::onListClicked);
     connect(m_listView, &QListView::doubleClicked, this, &MainWindow::onListDoubleClicked);
     connect(m_listView->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -548,6 +527,20 @@ void MainWindow::setupUi() {
 }
 
 void MainWindow::setupToolbar() {
+    auto tintIcon = [](const QString& path, const QColor& color, int size) {
+        const QPixmap source = QIcon(path).pixmap(size, size);
+        if (source.isNull()) {
+            return QIcon(path);
+        }
+        QPixmap tinted(source.size());
+        tinted.fill(Qt::transparent);
+        QPainter painter(&tinted);
+        painter.drawPixmap(0, 0, source);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        painter.fillRect(tinted.rect(), color);
+        return QIcon(tinted);
+    };
+
     m_toolbar = addToolBar(tr("Toolbar"));
     m_toolbar->setMovable(false);
     m_toolbar->setFloatable(false);
@@ -557,11 +550,12 @@ void MainWindow::setupToolbar() {
         "QToolBar { background:#252526; border:none; border-bottom:1px solid #1a1a1a; spacing:8px; padding:8px 12px; }"
         "QToolButton { color:#d0d0d0; background:transparent; border:1px solid transparent; padding:8px 12px; border-radius:8px; }"
         "QToolButton:hover { background:#35353a; border-color:transparent; }");
+    const QColor toolbarIconColor("#d0d0d0");
     m_addAction = new QAction(QIcon(QStringLiteral(":/icons/solid/plus.svg")), tr("Add URL"), this);
-    m_openFolderAction = new QAction(QIcon(QStringLiteral(":/icons/solid/folder-open.svg")), tr("Open Folder"), this);
-    m_toggleLogsAction = new QAction(QIcon(QStringLiteral(":/icons/solid/command-line.svg")), tr("Toggle Logs"), this);
+    m_openFolderAction = new QAction(tintIcon(QStringLiteral(":/icons/solid/folder-open.svg"), toolbarIconColor, 20), tr("Open Folder"), this);
+    m_toggleLogsAction = new QAction(tintIcon(QStringLiteral(":/icons/solid/command-line.svg"), toolbarIconColor, 20), tr("Toggle Logs"), this);
     m_toggleLogsAction->setCheckable(true);
-    m_settingsAction = new QAction(QIcon(QStringLiteral(":/icons/solid/cog-6-tooth.svg")), tr("Settings"), this);
+    m_settingsAction = new QAction(tintIcon(QStringLiteral(":/icons/solid/cog-6-tooth.svg"), toolbarIconColor, 20), tr("Settings"), this);
     m_selectAllAction = new QAction(tr("Select all"), this);
     m_bulkPauseAction = new QAction(QIcon(QStringLiteral(":/icons/solid/pause.svg")), tr("Pause"), this);
     m_bulkResumeAction = new QAction(QIcon(QStringLiteral(":/icons/solid/play.svg")), tr("Resume"), this);
@@ -602,7 +596,7 @@ void MainWindow::setupToolbar() {
     searchLayout->setContentsMargins(12, 3, 12, 3);
     searchLayout->setSpacing(8);
     auto* searchIcon = new QLabel(m_searchContainer);
-    searchIcon->setPixmap(QIcon(QStringLiteral(":/icons/solid/magnifying-glass.svg")).pixmap(14, 14));
+    searchIcon->setPixmap(tintIcon(QStringLiteral(":/icons/solid/magnifying-glass.svg"), toolbarIconColor, 14).pixmap(14, 14));
     m_searchEdit = new QLineEdit(m_searchContainer);
     m_searchEdit->setPlaceholderText(tr("Search downloads"));
     m_searchEdit->setStyleSheet(
@@ -960,37 +954,6 @@ void MainWindow::onSearchTextChanged(const QString& text) {
     m_proxyModel->sort(0);
 }
 
-void MainWindow::onTypeFilterChanged(int row) {
-    FileTypeFilter typeFilter = FileTypeFilter::All;
-    switch (row) {
-        case 1:
-            typeFilter = FileTypeFilter::Video;
-            break;
-        case 2:
-            typeFilter = FileTypeFilter::Document;
-            break;
-        case 3:
-            typeFilter = FileTypeFilter::Archive;
-            break;
-        case 4:
-            typeFilter = FileTypeFilter::Audio;
-            break;
-        case 5:
-            typeFilter = FileTypeFilter::Image;
-            break;
-        default:
-            break;
-    }
-    m_proxyModel->setTypeFilter(typeFilter);
-    m_delegate->clearExpandedIndex();
-    m_selectedSourceRowsSnapshot.clear();
-    m_listView->clearSelection();
-    m_listView->doItemsLayout();
-    m_proxyModel->sort(0);
-    updateSelectionModeUi();
-    updateActionStates();
-}
-
 void MainWindow::onSelectionCancel() {
     m_selectedSourceRowsSnapshot.clear();
     if (m_listView && m_listView->selectionModel()) {
@@ -1163,36 +1126,11 @@ void MainWindow::updateCountsAndStatus() {
     int completedCount = 0;
     int pausedCount = 0;
     int failedCount = 0;
-    int videosCount = 0;
-    int documentsCount = 0;
-    int archivesCount = 0;
-    int audioCount = 0;
-    int imageCount = 0;
     double totalActiveSpeed = 0.0;
 
     const auto& downloads = m_controller->manager()->downloads();
     for (DownloadItem* item : downloads) {
         ++allCount;
-        const QString ext = QFileInfo(item->filename()).suffix().toLower();
-        if (ext == QStringLiteral("mp4") || ext == QStringLiteral("mkv") || ext == QStringLiteral("avi") ||
-            ext == QStringLiteral("mov") || ext == QStringLiteral("webm") || ext == QStringLiteral("flv")) {
-            ++videosCount;
-        } else if (ext == QStringLiteral("pdf") || ext == QStringLiteral("doc") || ext == QStringLiteral("docx") ||
-                   ext == QStringLiteral("txt") || ext == QStringLiteral("rtf") || ext == QStringLiteral("ppt") ||
-                   ext == QStringLiteral("pptx") || ext == QStringLiteral("xls") || ext == QStringLiteral("xlsx")) {
-            ++documentsCount;
-        } else if (ext == QStringLiteral("zip") || ext == QStringLiteral("rar") || ext == QStringLiteral("7z") ||
-                   ext == QStringLiteral("tar") || ext == QStringLiteral("gz") || ext == QStringLiteral("bz2") ||
-                   ext == QStringLiteral("xz")) {
-            ++archivesCount;
-        } else if (ext == QStringLiteral("mp3") || ext == QStringLiteral("wav") || ext == QStringLiteral("aac") ||
-                   ext == QStringLiteral("ogg") || ext == QStringLiteral("flac") || ext == QStringLiteral("m4a")) {
-            ++audioCount;
-        } else if (ext == QStringLiteral("jpg") || ext == QStringLiteral("jpeg") || ext == QStringLiteral("png") ||
-                   ext == QStringLiteral("gif") || ext == QStringLiteral("bmp") || ext == QStringLiteral("svg") ||
-                   ext == QStringLiteral("webp")) {
-            ++imageCount;
-        }
         switch (item->state()) {
             case DownloadState::Downloading:
                 ++downloadingCount;
@@ -1219,15 +1157,6 @@ void MainWindow::updateCountsAndStatus() {
         m_sidebar->item(3)->setData(kFilterCountRole, pausedCount);
         m_sidebar->item(4)->setData(kFilterCountRole, failedCount);
         m_sidebar->viewport()->update();
-    }
-    if (m_fileTypeList && m_fileTypeList->count() >= 6) {
-        m_fileTypeList->item(0)->setData(kFilterCountRole, allCount);
-        m_fileTypeList->item(1)->setData(kFilterCountRole, videosCount);
-        m_fileTypeList->item(2)->setData(kFilterCountRole, documentsCount);
-        m_fileTypeList->item(3)->setData(kFilterCountRole, archivesCount);
-        m_fileTypeList->item(4)->setData(kFilterCountRole, audioCount);
-        m_fileTypeList->item(5)->setData(kFilterCountRole, imageCount);
-        m_fileTypeList->viewport()->update();
     }
 
     if (m_statusLeftLabel) {
