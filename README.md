@@ -3,6 +3,8 @@
 A lightweight desktop GUI for `muld`.
 
 > `muld-gui` is a toy project developed by me, and it uses `muld` as the backend.
+>
+> Backend repository: [muld](https://github.com/Arash1381-y/muld)
 
 ![muld-gui screenshot](assets/downloading.png)
 
