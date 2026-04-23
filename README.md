@@ -45,7 +45,3 @@ cmake --build build -j
 - `assets/` — README/demo assets
 - `dist/linux/` — Linux packaging metadata and app icon
 
-## Notes
-
-- This repository also includes packaging artifacts such as AppImage and `.zip` bundles.
-- The app is currently focused on Linux desktop workflows.
