@@ -1,10 +1,9 @@
-# <img src="dist/linux/muld-gui.svg" alt="muld-gui icon" width="28" /> muld-gui
+# <img src="assets/muld-gui.svg" alt="muld-gui icon" width="28" /> muld-gui
 
 A lightweight desktop GUI for `muld`.
 
-> `muld-gui` is a toy project developed by me, and it uses `muld` as the backend.
->
-> Backend repository: [muld](https://github.com/Arash1381-y/muld)
+note: `muld-gui` is a toy project I developed during war. It is not a serious project. Tt uses `muld` as the backend.
+Backend repository: [muld](https://github.com/Arash1381-y/muld)
 
 ![muld-gui screenshot](assets/downloading.png)
 

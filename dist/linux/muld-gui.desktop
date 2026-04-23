@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Muld GUI
+Exec=muld-gui
+Icon=muld-gui
+Comment=A GUI for the muld downloader
+Terminal=false
+Categories=Network;Utility;

@@ -3,3 +3,6 @@ build/
 changes.txt
 design.txt
 index.html
+.cache
+app-image
+dist

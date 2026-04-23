@@ -70,7 +70,7 @@ install(FILES
 )
 
 install(FILES
-    ${CMAKE_SOURCE_DIR}/dist/linux/muld-gui.svg
+    ${CMAKE_SOURCE_DIR}/assets/muld-gui.svg
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
 )
 
@@ -97,4 +97,3 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 # Include the CPack module (Must be at the very end)
 include(CPack)
-
